@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎯 Spin & Win ₹</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    h1 {
+      color: #e91e63;
+    }
+
+    canvas {
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 40px solid red;
+      margin-top: -20px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 18px;
+      background: #e91e63;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: green;
+      text-align: center;
+    }
+
+    .upi-box {
+      margin-top: 10px;
+      background: #fffde7;
+      padding: 15px;
+      border: 2px dashed #ff9800;
+      border-radius: 10px;
+      color: #e65100;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎉 Spin & Win ₹</h1>
+  <div class="pointer"></div>
+  <canvas id="wheel" width="500" height="500"></canvas> <!-- Increased canvas size -->
+  <button id="spinBtn" onclick="spin()">Spin Now</button>
+  <div class="message" id="message"></div>
+
+  <script>
+    const prizes = [100000, 50000, 500, 0, 80000, 10000, 40000, 1000];
+    const colors = ['#f44336', '#4caf50', '#2196f3', '#ffeb3b', '#ff9800', '#9c27b0', '#00bcd4', '#e91e63'];
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const message = document.getElementById('message');
+    const winningSound = new Audio('https://www.soundjay.com/button/beep-07.wav'); // You can replace this with your sound URL
+
+    let startAngle = 0;
+    let spinCount = 0;
+    let totalWinnings = 0;
+
+    function drawWheel() {
+      const arcSize = (2 * Math.PI) / prizes.length;
+
+      for (let i = 0; i < prizes.length; i++) {
+        const angle = startAngle + i * arcSize;
+        ctx.fillStyle = colors[i % colors.length];
+
+        // Draw slice
+        ctx.beginPath();
+        ctx.moveTo(250, 250);
+        ctx.arc(250, 250, 250, angle, angle + arcSize);  // Increased radius for bigger wheel
+        ctx.fill();
+
+        // Draw text
+        ctx.save();
+        ctx.translate(250, 250);
+        ctx.rotate(angle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 20px Arial";  // Increased font size
+        ctx.fillText(`₹${prizes[i]}`, 230, 10);
+        ctx.restore();
+      }
+    }
+
+    drawWheel();
+
+    function spin() {
+      if (spinCount >= 3) {
+        message.innerHTML = `
+          🚫 <b>3 Spin Limit Reached!</b><br>
+          🎁 Total Winnings: <b>₹${totalWinnings}</b><br><br>
+          To withdraw, please pay ₹500 to:<br>
+          <div class="upi-box">🔁 <b>7008606746@ybl</b></div>
+        `;
+        return;
+      }
+
+      spinBtn.disabled = true;
+
+      const prizeIndex = Math.floor(Math.random() * prizes.length);
+      const arcSize = (2 * Math.PI) / prizes.length;
+      const rotation = (Math.PI * 4) + (Math.PI * 2) - (prizeIndex * arcSize + arcSize / 2);
+
+      let currentRotation = 0;
+      const interval = setInterval(() => {
+        currentRotation += 0.1;
+        if (currentRotation >= rotation) {
+          clearInterval(interval);
+          totalWinnings += prizes[prizeIndex];
+          spinCount++;
+
+          // Play winning sound
+          winningSound.play();
+
+          message.innerHTML = `🎊 You won ₹${prizes[prizeIndex]}!<br>🪙 Total: ₹${totalWinnings} | Spins: ${spinCount}/3`;
+
+          if (spinCount === 3) {
+            message.innerHTML += `
+              <br><br>🎁 You’ve used all 3 spins.<br>
+              Pay ₹500 to withdraw:
+              <div class="upi-box">📲 <b>7008606746@ybl</b></div>
+            `;
+          } else {
+            spinBtn.disabled = false;
+          }
+        } else {
+          startAngle += 0.1;
+          ctx.clearRect(0, 0, 500, 500);  // Updated canvas size for clearing
+          drawWheel();
+        }
+      }, 10);
+    }
+  </script>
+
+</body>
+</html>
